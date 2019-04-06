@@ -1,0 +1,252 @@
+<html>
+
+<head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <link rel="stylesheet" href="./project_css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M"
+            crossorigin="anonymous">
+        <link rel="stylesheet" href="./project_css/studenthomepage.css">
+        <script src ="cookie.js"></script>
+        <script src="jquery-3.3.1.js"></script> 
+        <script src="jquery-3.3.1.min.js"></script> 
+        <link href="modal.css" rel="stylesheet">
+        <title>Instructor Main Page</title>
+    </head>
+    
+    <body>
+        <div class="container-fluid justify-content-center">
+            <nav class="navbar text-center">
+                <div class="col">
+                    <h1 class="font-weight-bold text-dark text-center">ASESSE</h1>
+            </nav>
+        </div>
+
+
+
+
+<div class="groupSize pt-5">
+<div id="heading"> 
+<h1 class="text-center"> Instructor Main Page </h1>
+<button onclick="changePassword()" class="form-control bg-dark text-white">Change Admin Password</button>
+<button onclick="logOut()" class="form-control bg-dark text-white">Log Out</button> 
+</div>
+
+<script> 
+
+// Check Cookie for access
+var accessCode = getCookie("ASSESE");
+        
+if (accessCode != -1){
+    window.location = "instructor.html";
+}
+
+</script>
+
+  <!-- Update Admin Password Form -->
+  <style>
+.newPassword{
+     display: none; 
+}
+</style>
+
+<div id="passwordForm" class ="newPassword">
+    <form class="pure-form" action ="javascript:updateAdminPassword(this)">
+    <fieldset>
+        <legend>Change Admin Password</legend>
+
+        <input type="password" placeholder="Password" id="passwordUpdate" required>
+        <input type="password" placeholder="Confirm Password" id="confirm_password_update" required>
+
+        <button type="submit" class="form-control btnSize bg-dark text-white">Confirm</button>
+    </fieldset>
+</form>
+  </div>
+
+<div id="main"><h2 class="text-center"> Courses <button id ="myBtn" class="form-control bg-dark text-white">Add Course</button></h2>  </div>
+<div id="courseList"></div>
+
+  <!-- New Course Form -->
+<div id="myModal" class="modal">
+
+
+  <div class="modal-content modal-dialog modal-md">
+    <span class="close">&times;</span>
+    <form class="pure-form" action ="javascript:postData(this)">
+    <fieldset>
+        <legend>Create Course Password</legend>
+
+        <input class="form-control selectSize" type="text" placeholder = "Course Name" name="courseName" id="courseName" required> 
+        <input class="form-control selectSize" type="password" placeholder="Password" id="password" required>
+        <input class="form-control selectSize" type="password" placeholder="Confirm Password" id="confirm_password" required>
+
+        <button type="submit" class="btn btn-default pure-button pure-button-primary">Confirm</button>
+    </fieldset>
+</form>
+  </div>
+
+<script>
+// Password Related Script - New Course and Update Admin Password // 
+
+var password = document.getElementById("password");
+var confirm_password = document.getElementById("confirm_password");
+var courseName = document.getElementById("courseName");
+
+var adminPassword = document.getElementById("passwordUpdate")
+var confirm_adminPassword = document.getElementById("confirm_password_update")
+
+
+function validatePassword(){
+
+    if((password.value != confirm_password.value) || (password.value == "")) {
+    confirm_password.setCustomValidity("Passwords Don't Match");
+  } else {
+    confirm_password.setCustomValidity('');
+  }
+}
+
+function validateAdminPassword(){
+
+    if((adminPassword.value != confirm_adminPassword.value) || (adminPassword.value == "")) {
+    confirm_adminPassword.setCustomValidity("Passwords Don't Match");
+  } else {
+    confirm_adminPassword.setCustomValidity('');
+  }
+}
+
+courseName.onchange = validatePassword;
+password.onchange = validatePassword;
+confirm_password.onkeyup = validatePassword;
+
+adminPassword.onchange = validateAdminPassword;
+confirm_adminPassword.onkeyup = validateAdminPassword;
+
+
+// Modal Script //////////////////////////////////////////
+// Get the modal
+var modal = document.getElementById('myModal');
+
+// Get the button that opens the modal
+var btn = document.getElementById("myBtn");
+
+// Get the <span> element that closes the modal
+var span = document.getElementsByClassName("close")[0];
+
+// When the user clicks on the button, open the modal 
+btn.onclick = function() {
+    modal.style.display = "block";
+}
+
+// When the user clicks on <span> (x), close the modal
+span.onclick = function() {
+    modal.style.display = "none";
+}
+
+// When the user clicks anywhere outside of the modal, close it
+window.onclick = function(event) {
+    if (event.target == modal) {
+        modal.style.display = "none";
+    }
+}
+
+////// Populate Page with Courses ///////////////////////////////
+$.get("instructor.php/courseList")
+.done(function(data){
+    var html = '';
+    var length = 0;
+    for (var key in data){
+        if(data.hasOwnProperty(key)){
+            length++;
+        }
+    }
+
+    for (var i=0; i<length; i++){
+        html += '<button class="btn btn-default bg-secondary text-white" onclick = "coursePage(' 
+        html += data[i]["Course ID"]
+        html += ')">'
+        html += data[i].Name
+        html += '</button>'
+
+        html += '<button class="btn btn-default bg-danger text-white" onclick = "removeCourse('
+        html += data[i]["Course ID"]
+        html += ')"> Remove Course </button>'
+        
+       // html += '<button> Reset Course </button>'
+        html += '<br><br>'
+    }
+
+$('#courseList').html(html);
+
+})
+
+//// Functions ///////////////////////////////
+
+// Redirect to course Page
+function coursePage(courseCode){
+    window.location = "courses.html?cID=" + courseCode
+}
+
+// Delete Course
+
+function removeCourse(courseCode){
+    var data = {course_ID: courseCode};
+
+    $.post("instructor.php/removeCourse", data)
+.done(function(data){
+    window.location = "instructorMain.html"
+})
+}
+
+// Call Php script to create new course
+
+function postData(){
+    console.log("postData Called");
+    var data = {course_name: courseName.value, 
+                pass_word: password.value};
+	
+    $.post("instructor.php/newCourse", data)
+                    .done(function (data) {
+                    })
+    
+    alert('New Course Created!');
+     modal.style.display = "none";
+     window.location = "instructorMain.html"
+
+}
+
+// Call php script to update admin password
+
+function updateAdminPassword(){
+    var data = {newPassword: adminPassword.value};
+
+    $.post("instructor.php/updateAdminPassword",data)
+    .done(function(data){ 
+        $("#passwordForm").fadeOut();
+        alert("Password changed!");
+        })
+
+}
+
+// Causes the change password Form to be displayed
+
+function changePassword(){
+    $("#passwordForm").fadeIn();
+}
+
+
+</script>
+</div>
+</body>
+
+<footer>
+        <div class="footer">© 2018 Copyright</div>
+    </footer>
+</html>
+
+
+
+
+
+
+
+
